@@ -1,55 +1,40 @@
 pipeline {
-    
-    agent { label 'jenkins-agent' }
-    
-    stages{
+
+    // ✅ Changed from `agent { label 'jenkins-agent' }` to `agent any`
+    agent any
+
+    stages {
         
-        stage("Code"){
-            steps{
-                git url: 'https://github.com/vansh1999/markethub.git' , branch: 'main' 
-                echo "Code received successfully from github +++"
-                
+        stage("Code") {
+            steps {
+                git url: 'https://github.com/vansh1999/markethub.git', branch: 'main'
+                echo "Code received successfully from GitHub +++"
             }
         }
         
-        stage("Build and Test"){
-            steps{
-                sh 'docker build . -t markethub'
+        stage("Build and Test") {
+            steps {
+                sh 'docker build -t markethub:latest .'
             }
         }
-        
-    //     stage("login in dockerhub"){
-	//          steps{
-    //              withCredentials([usernamePassword(credentialsID: 'markethub-pass' , passwordVariable: 'dockerHubPassword' , usernameVariable: 'dockerHubUsername' )]){
-	// 	                sh 'docker login -u ${env.dockerHubUsername} -p ${dockerHubPassword}''
-    //                      }
-    //             }
-    //     }
-        
-        stage("Deploy"){
-            steps{
+
+        stage("Deploy") {
+            steps {
                 sh '''
+                    # ✅ Stop existing container running on port 8000 (if any)
+                    CONTAINER_ID=$(docker ps -q --filter "publish=8000")
+                    if [ -n "$CONTAINER_ID" ]; then
+                        echo "Stopping existing container..."
+                        docker stop $CONTAINER_ID
+                        docker rm $CONTAINER_ID
+                    else
+                        echo "No container running on port 8000"
+                    fi
 
-      			CONTAINER_ID=$(docker ps -q --filter publish=8000)
-
-			if [ -n "$CONTAINER_ID" ]; then
-  				docker stop $CONTAINER_ID
-			else
-  				echo "No container is using port 8000"
-			fi
-
-		    
-		    
-		    	docker run -d -p 8000:8000 markethub:latest
-
-
-		        '''
-		    
+                    # ✅ Run new container
+                    docker run -d -p 8000:8000 --name markethub markethub:latest
+                '''
             }
         }
-        
-        
     }
-    
-    
 }
