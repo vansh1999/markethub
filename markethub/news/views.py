@@ -35,12 +35,7 @@ def get_live_prices():
     nasdaq = yf.Ticker('^IXIC')
     # dow30 = yf.Ticker('^DJI')
 
-    data = nifty.history(period="1d")
-
-    if not data.empty:
-        nifty_price = data['Close'].iloc[-1]
-    else:
-        nifty_price = None  # or a fallback like 0
+    nifty_price = nifty.history(period="1d")['Close'].iloc[-1]
     sensex_price = sensex.history(period="1d")['Close'].iloc[-1]
     nifty_bank_price = nifty_bank.history(period="1d")['Close'].iloc[-1]
     nifty_it_price = nifty_it.history(period="1d")['Close'].iloc[-1]
